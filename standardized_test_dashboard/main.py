@@ -21,8 +21,8 @@ def conf_interval(se=2.6, conf_level=0.95, sample_size=100):
 
 with st.sidebar:
     test_name = st.text_input(label="Test Name", value="LSAT")
-    se = st.slider('standard error of measurement', min_value=0.01, max_value=20.0, value=2.6, step=0.01)
-    conf_level = st.slider("confidence level", min_value=0.01, max_value=0.99, value=0.95, step=0.01)
+    se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=2.6, step=0.01)
+    conf_level = st.slider("confidence level", min_value=0.5, max_value=0.99, value=0.95, step=0.01)
     sample_size = st.slider("sample size", min_value=10,max_value=100_000,value=100, step=10)
     reported_score = st.slider(f"Reported {test_name} Score", min_value=120,max_value=180,value=150, step=1)
 
