@@ -1,0 +1,4 @@
+streamlit
+scipy>=1.10
+matplotlib
+# numpy - streamlit dependency
