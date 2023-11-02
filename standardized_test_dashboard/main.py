@@ -51,7 +51,8 @@ ax.plot(x, norm.pdf(x,loc=MEAN_SCORE,scale=14),
        'b-', lw=5, alpha=0.6, label='norm pdf')
 
 ax.plot(reported_score, 0.003, marker="o", markersize=10, markeredgecolor="red", markerfacecolor="blue")
-plt.errorbar(x=reported_score, y=0.003, xerr=interval[0])
+#xerr can't be negative, so have to use the second value
+plt.errorbar(x=reported_score, y=0.003, xerr=interval[1])
 if bins > 0:
     plt.vlines(rbin,ymin=0.0027,ymax=norm.pdf(rbin,loc=MEAN_SCORE,scale=14)*0.98,linestyle="--")
 plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\nSEm: {se}, n={sample_size}")
