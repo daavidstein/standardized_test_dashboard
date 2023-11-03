@@ -13,18 +13,29 @@ from matplotlib import pyplot as plt
 #TODO drop down to select which test
 # this automatically sets the SEm, mean, st and score range of the test.
 #explore how discrimination changes htings
-SCORE_RANGE = [120,180]
-N_SCORES = SCORE_RANGE[1] - SCORE_RANGE[0]
-MEAN_SCORE = (SCORE_RANGE[0] + SCORE_RANGE[1])/2
+
 def conf_interval(se=2.6, conf_level=0.95, sample_size=100):
     return np.array(t.interval(conf_level,df=sample_size -1))*se
 
+
+sem_range = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152} ,
+             "MCAT": {"sem": 3.42, "range":(472, 528), "sd": 10.8, "mean": 502},
+             "GMAT":{"sem": 30.0, "range": (200,800), "sd": 111.13, "mean": 582}}
+
 with st.sidebar:
-    test_name = st.text_input(label="Test Name", value="LSAT")
-    se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=2.6, step=0.01)
+    #test_name = st.text_input(label="Test Name", value="LSAT")
+    test_name = st.selectbox(
+        'Test',
+        ('LSAT', 'MCAT', 'GMAT'))
+
+    se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=sem_range[test_name]["sem"], step=0.01)
+    score_range  = sem_range[test_name]["range"]
+    n_scores = score_range[1] - score_range[0]
+    mean_score = sem_range[test_name]["mean"]
+    #mean_score = int((score_range[0] + score_range[1]) / 2 )
     conf_level = st.slider("confidence level", min_value=0.5, max_value=0.99, value=0.95, step=0.01)
     sample_size = st.slider("sample size", min_value=10,max_value=100_000,value=100, step=10)
-    reported_score = st.slider(f"Reported {test_name} Score", min_value=120,max_value=180,value=150, step=1)
+    reported_score = st.slider(f"Reported {test_name} Score", min_value=score_range[0],max_value=score_range[1],value=mean_score, step=1)
 
 interval = conf_interval(se=se,conf_level=conf_level,sample_size=sample_size)
 #st.text(interval)
@@ -33,28 +44,29 @@ width = interval[1] - interval[0]
 
 
 conf_level_text = f"{int(conf_level * 100)}%"
-if width <= N_SCORES:
-    bins = int(N_SCORES // width)
-    increment = N_SCORES/ bins
-    rbin =[SCORE_RANGE[0] +i*increment for i in range(1,bins+1)]
+if width <= n_scores:
+    bins = int(n_scores // width)
+    #bins = N_SCORES / width
+    increment = n_scores / bins
+    rbin =[score_range[0] +i*increment for i in range(1,int(bins))]
 else:
     bins = 0
 
 
 fig, ax = plt.subplots(1, 1)
-x = np.arange(SCORE_RANGE[0],
-                SCORE_RANGE[1], 1)
+x = np.arange(score_range[0],
+                score_range[1], 1)
 #this says that most tests have a SD of 15
 #https://www.patoss-dyslexia.org/write/MediaUploads/Resources/Standard_Error_of_Measurement_and_Confidence_Intervals_PATOSS_Updated_June_2020.pdf
 #supposedly LSAT is 10
-ax.plot(x, norm.pdf(x,loc=MEAN_SCORE,scale=14),
+ax.plot(x, norm.pdf(x, loc=mean_score, scale=sem_range[test_name]["sd"]),
        'b-', lw=5, alpha=0.6, label='norm pdf')
 
-ax.plot(reported_score, 0.003, marker="o", markersize=10, markeredgecolor="red", markerfacecolor="blue")
+ax.plot(reported_score, 0.000, marker="o", markersize=10, markeredgecolor="red", markerfacecolor="blue")
 #xerr can't be negative, so have to use the second value
-plt.errorbar(x=reported_score, y=0.003, xerr=interval[1])
+plt.errorbar(x=reported_score, y=0.000, xerr=interval[1])
 if bins > 0:
-    plt.vlines(rbin,ymin=0.0027,ymax=norm.pdf(rbin,loc=MEAN_SCORE,scale=14)*0.98,linestyle="--")
+    plt.vlines(rbin, ymin=0.000, ymax=norm.pdf(rbin, loc=mean_score, scale=sem_range[test_name]["sd"]), linestyle="--")
 plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\nSEm: {se}, n={sample_size}")
 plt.xlabel(f"{test_name} Score")
 fig = plt.gcf()
