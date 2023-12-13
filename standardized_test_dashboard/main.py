@@ -17,7 +17,7 @@ from matplotlib import pyplot as plt
 def conf_interval(se=2.6, conf_level=0.95, sample_size=100):
     return np.array(t.interval(conf_level,df=sample_size -1))*se
 
-
+#TODO cite where the mean, sd, sem numbers come from
 sem_range = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152} ,
              "MCAT": {"sem": 3.42, "range":(472, 528), "sd": 10.8, "mean": 502},
              "GMAT":{"sem": 30.0, "range": (200,800), "sd": 111.13, "mean": 582}}
@@ -26,7 +26,9 @@ with st.sidebar:
     #test_name = st.text_input(label="Test Name", value="LSAT")
     test_name = st.selectbox(
         'Test',
-        ('LSAT', 'MCAT', 'GMAT'))
+        #rm mcat until we correct the SEm
+        #('LSAT', 'MCAT', 'GMAT'))
+        ('LSAT', 'GMAT'))
 
     se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=sem_range[test_name]["sem"], step=0.01)
     score_range  = sem_range[test_name]["range"]
@@ -77,11 +79,11 @@ html(f"""<html><p>If the {test_name} has a standard error of measurement of {se}
         sort students into {bins} bins (assign them one of {bins} ranks) with {conf_level_text} confidence . <br><br>
         These bins will have a width of about {int(width)} scaled {test_name} score points
         </p></html>""")
-html(f"""<html><p>
-        <a href="https://www.lsac.org/{test_name}/taking-{test_name}/{test_name}-scoring/{test_name}-score-bands#:~:text=The%20standard%20error%20of%20measurement%20provides%20an%20estimate%20of%20the,about%202.6%20scaled%20score%20points.">The standard error of measurement</a> is a measure of the accuracy of the {test_name} test.
-         <br> <br>
-         If a student receives a score of {reported_score} when taking the {test_name}, their "true" score will be between {int(reported_score +interval[0])} and {int(reported_score +interval[1])} with {conf_level_text} confidence
-        </p></html>""")
+# html(f"""<html><p>
+#         <a href="https://www.lsac.org/{test_name}/taking-{test_name}/{test_name}-scoring/{test_name}-score-bands#:~:text=The%20standard%20error%20of%20measurement%20provides%20an%20estimate%20of%20the,about%202.6%20scaled%20score%20points.">The standard error of measurement</a> is a measure of the accuracy of the {test_name} test.
+#          <br> <br>
+#          If a student receives a score of {reported_score} when taking the {test_name}, their "true" score will be between {int(reported_score +interval[0])} and {int(reported_score +interval[1])} with {conf_level_text} confidence
+#         </p></html>""")
 
 st.text("Only mathematical formulas were used to make this app. ")
 st.text("No student data from LSAC or anywhere else was used to create this app.")
