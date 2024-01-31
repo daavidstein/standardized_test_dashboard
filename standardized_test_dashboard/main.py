@@ -142,5 +142,5 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
 
 
 
-html(main_info, height=120)
+html(main_info, height=140)
 html(source_html, height=310)
