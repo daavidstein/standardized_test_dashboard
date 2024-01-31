@@ -5,16 +5,6 @@ from streamlit.components.v1 import html
 from matplotlib import pyplot as plt
 import datetime
 
-
-#MCAT sem = std*sqrt(1-r)
-# MCAT r = 0.9, std = 10.8
-# => MCAT sem = 3.42
-#FIXME look into the standard error of estimation
-#  it's easier to estimate students near the middle than at the tails
-#TODO drop down to select which test
-# this automatically sets the SEm, mean, st and score range of the test.
-#explore how discrimination changes htings
-
 def conf_interval(se=2.6, conf_level=0.95, sample_size=100):
     return np.array(t.interval(conf_level,df=sample_size -1))*se
 
@@ -54,7 +44,6 @@ def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text,
 def get_link(anchor_text, url):
     return f"<a href={url}>{anchor_text}</a>"
 
-
 def get_source_links(sources, test_stats, test_name):
 
     stats = test_stats[test_name]
@@ -70,20 +59,27 @@ sources = {"LSAC": "https://web.archive.org/web/20230529145804/https://www.lsac.
            "Best Accredited Colleges": "https://bestaccreditedcolleges.org/articles/careers-and-education/what-is-the-standard-deviation-of-lsat-scores.html",
            "ETS": "https://www.ets.org/pdfs/gre/gre-guide-to-the-use-of-scores.pdf",
            "GMAC": "https://www.gmac.com/-/media/files/gmac/gmat/gmat_institutionuserguide_fnl.pdf",
-           "mba.com": "https://www.mba.com/exams/gmat-exam/scores/understanding-your-score"}
+           "mba.com": "https://www.mba.com/exams/gmat-exam/scores/understanding-your-score",
+           "AAMC": "https://www.aamc.org/media/18901/download?attachment",
+            "College Board [1]": "https://satsuite.collegeboard.org/media/pdf/understanding-sat-scores.pdf",
+           "College Board [2]": "https://reports.collegeboard.org/media/pdf/2022-total-group-sat-suite-of-assessments-annual-report.pdf"}
 
 test_stats = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152,
                        "sem_source": "LSAC",
                        "mean_source": "Best Accredited Colleges",
                        "sd_source": "Best Accredited Colleges"},
-             "MCAT": {"sem": 3.42, "range":(472, 528), "sd": 10.8, "mean": 502},
+             "MCAT": {"sem": 2.0, "range":(472, 528), "sd": 11.0, "mean": 501,
+                      "sem_source": "AAMC","mean_source":"AAMC", "sd_source": "AAMC"},
              "GMAT":{"sem": 29.0,  "sed": 41.0, "range": (200,800), "sd": 111.13, "mean": 582,
                      "sem_source": "GMAC","mean_source": "mba.com", "sd_source": "mba.com"},
              "GRE": {"sem": 2.3, "range": (260,340), "sd": 18.26, "mean": 306,
                      "sem_source": "ETS",
                      "mean_source": "ETS",
-                     "sd_source": "ETS"}
-              #"SAT": {"sem": 32.0, "range"}
+                     "sd_source": "ETS"},
+              "SAT": {"sem": 40.0, "range": (400,1600), "sd":216.0, "mean":1050,
+                      "sem_source": "College Board [1]",
+                      "mean_source": "College Board [2]",
+                      "sd_source": "College Board [2]"}
 
               }
 
@@ -91,9 +87,7 @@ with st.sidebar:
     #test_name = st.text_input(label="Test Name", value="LSAT")
     test_name = st.selectbox(
         'Test',
-        #rm mcat until we correct the SEm
-        #('LSAT', 'MCAT', 'GMAT'))
-        ('LSAT', 'GMAT', 'GRE'))
+        ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT'))
 
     se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=test_stats[test_name]["sem"], step=0.01)
     score_range  = test_stats[test_name]["range"]
@@ -144,3 +138,6 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
 
 html(main_info, height=140)
 html(source_html, height=310)
+
+
+#aamc : https://www.aamc.org/media/35641/download
