@@ -23,9 +23,7 @@ def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text,
     fig, ax = plt.subplots(1, 1)
     x = np.arange(score_range[0],
                   score_range[1], 1)
-    # this says that most tests have a SD of 15
-    # https://www.patoss-dyslexia.org/write/MediaUploads/Resources/Standard_Error_of_Measurement_and_Confidence_Intervals_PATOSS_Updated_June_2020.pdf
-    # supposedly LSAT is 10
+
     ax.plot(x, norm.pdf(x, loc=mean_score, scale=test_stats[test_name]["sd"]),
             'b-', lw=5, alpha=0.6, label='norm pdf')
 
@@ -62,7 +60,10 @@ sources = {"LSAC": "https://web.archive.org/web/20230529145804/https://www.lsac.
            "mba.com": "https://www.mba.com/exams/gmat-exam/scores/understanding-your-score",
            "AAMC": "https://www.aamc.org/media/18901/download?attachment",
             "College Board [1]": "https://satsuite.collegeboard.org/media/pdf/understanding-sat-scores.pdf",
-           "College Board [2]": "https://reports.collegeboard.org/media/pdf/2022-total-group-sat-suite-of-assessments-annual-report.pdf"}
+           "College Board [2]": "https://reports.collegeboard.org/media/pdf/2022-total-group-sat-suite-of-assessments-annual-report.pdf",
+           "ACT [1]": "https://www.act.org/content/dam/act/unsecured/documents/Using-Your-ACT-Results-20-21.pdf",
+           "ACT [2]": "https://www.act.org/content/dam/act/unsecured/documents/MultipleChoiceStemComposite.pdf"
+           }
 
 test_stats = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152,
                        "sem_source": "LSAC",
@@ -79,7 +80,11 @@ test_stats = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152,
               "SAT": {"sem": 40.0, "range": (400,1600), "sd":216.0, "mean":1050,
                       "sem_source": "College Board [1]",
                       "mean_source": "College Board [2]",
-                      "sd_source": "College Board [2]"}
+                      "sd_source": "College Board [2]"},
+              "ACT": {"sem": 1.0, "range": (1,36), "sd": 6.0, "mean": 20,
+                      "sem_source":"ACT [1]",
+                      "mean_source": "ACT [2]",
+                      "sd_source": "ACT [2]"}
 
               }
 
@@ -87,7 +92,7 @@ with st.sidebar:
     #test_name = st.text_input(label="Test Name", value="LSAT")
     test_name = st.selectbox(
         'Test',
-        ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT'))
+        ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT', 'ACT'))
 
     se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=test_stats[test_name]["sem"], step=0.01)
     score_range  = test_stats[test_name]["range"]
@@ -131,7 +136,7 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
     <p>
     Only mathematical formulas and the above cited statistics were used to make this app. No student data from ETS, LSAC, The College Board nor anywhere else was used.
     <hr>
-    Copyright {year} Daavid Stein. All rights reserved."""
+    Copyright {year}  {get_link(anchor_text="Daavid Stein",url="http://www.linkedin.com/in/daavidstein")} All rights reserved."""
 
 
 
