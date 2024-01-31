@@ -1,4 +1,4 @@
-from scipy.stats import t, norm
+from scipy.stats import t, skewnorm
 import numpy as np
 import streamlit as st
 from streamlit.components.v1 import html
@@ -19,19 +19,26 @@ def get_bins(width,n_scores):
         bins = 0
     return bins, rbin
 
+
+
 def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin):
     fig, ax = plt.subplots(1, 1)
     x = np.arange(score_range[0],
                   score_range[1], 1)
 
-    ax.plot(x, norm.pdf(x, loc=mean_score, scale=test_stats[test_name]["sd"]),
-            'b-', lw=5, alpha=0.6, label='norm pdf')
+    a =-0.4 if test_name in ["GMAT", "GRE"] else 0
+
+
+
+
+    ax.plot(x, skewnorm.pdf(x, a,loc=mean_score, scale=test_stats[test_name]["sd"]),
+            'b-', lw=5, alpha=0.6, label='pdf')
 
     ax.plot(reported_score, 0.000, marker="o", markersize=10, markeredgecolor="red", markerfacecolor="blue")
     # xerr can't be negative, so have to use the second value
     plt.errorbar(x=reported_score, y=0.000, xerr=interval[1])
     if bins > 0:
-        plt.vlines(rbin, ymin=0.000, ymax=norm.pdf(rbin, loc=mean_score, scale=test_stats[test_name]["sd"]),
+        plt.vlines(rbin, ymin=0.000, ymax=skewnorm.pdf(rbin, a,loc=mean_score, scale=test_stats[test_name]["sd"]),
                    linestyle="--")
     plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\nSEm: {se}, n={sample_size}")
     plt.xlabel(f"{test_name} Score")
