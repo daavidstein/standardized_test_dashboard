@@ -21,7 +21,7 @@ def get_bins(width,n_scores):
 
 
 
-def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin, use_se):
+def get_figure(sem, sed,mean_score, test_stats,test_name, reported_score,score_band,conf_level_text, sample_size, bins, rbin ):
     fig, ax = plt.subplots(1, 1)
     x = np.arange(score_range[0],
                   score_range[1], 1)
@@ -34,11 +34,11 @@ def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text,
 
     ax.plot(reported_score, 0.000, marker="o", markersize=10, markeredgecolor="red", markerfacecolor="blue")
     # xerr can't be negative, so have to use the second value
-    plt.errorbar(x=reported_score, y=0.000, xerr=interval[1])
+    plt.errorbar(x=reported_score, y=0.000, xerr=score_band[1])
     if bins > 0:
         plt.vlines(rbin, ymin=0.000, ymax=skewnorm.pdf(rbin, a,loc=mean_score, scale=test_stats[test_name]["sd"]),
                    linestyle="--")
-    plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\n{use_se}: {se}, n={sample_size}")
+    plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\nSEM: {sem}, SED: {sed}, n={sample_size}")
     plt.xlabel(f"{test_name} Score")
     fig = plt.gcf()
 
@@ -100,16 +100,17 @@ with st.sidebar:
         ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT', 'ACT'))
 
     sem = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=test_stats[test_name]["sem"], step=0.01)
+    sed = round(np.sqrt(2 * (sem ** 2)), 2)
 
-    use_se = st.radio(
-        "Compute Score Buckets Using",
-        ["SEm", "SED"],
-        captions=["Standard Error of Measurement", "Standard Error of Differences"])
-
-    if use_se == "SEm":
-        se = sem
-    else:
-        se = round(np.sqrt(2*(sem**2)),2)
+    # use_se = st.radio(
+    #     "Compute Score Buckets Using",
+    #     ["SEm", "SED"],
+    #     captions=["Standard Error of Measurement", "Standard Error of Differences"])
+    #
+    # if use_se == "SEm":
+    #     se = sem
+    # else:
+    #     se = round(np.sqrt(2*(sem**2)),2)
 
     score_range  = test_stats[test_name]["range"]
     n_scores = score_range[1] - score_range[0]
@@ -119,25 +120,31 @@ with st.sidebar:
     sample_size = st.slider("sample size", min_value=10,max_value=100_000,value=100, step=10)
     reported_score = st.slider(f"Reported {test_name} Score", min_value=score_range[0],max_value=score_range[1],value=mean_score, step=1)
 
-interval = conf_interval(se=se,conf_level=conf_level,sample_size=sample_size)
-width = interval[1] - interval[0]
+score_band = conf_interval(se=sem,conf_level=conf_level,sample_size=sample_size)
+difference_interval = conf_interval(se=sed,conf_level=conf_level,sample_size=sample_size)
+width = difference_interval[1] - difference_interval[0]
 
 conf_level_text = f"{int(conf_level * 100)}%"
 
 bins, rbin = get_bins(width, n_scores)
 
-fig =get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin, use_se)
+fig =get_figure(sem, sed,mean_score, test_stats,test_name, reported_score,score_band,conf_level_text, sample_size, bins, rbin )
 st.pyplot(fig)
 
 sem_link, mean_link, sd_link = get_source_links(sources, test_stats, test_name)
 year = datetime.date.today().year
 
-main_info =f"""<html><p>If the {test_name} has a standard error of measurement ({use_se}) of {se}, then it can reliably
+main_info =f"""<html><p>
+      If the {test_name} has an SEm of {sem}, then a student who receives a score of {reported_score} when taking the {test_name}
+      will have a "true" score between {int(reported_score +score_band[0])} and {int(reported_score +score_band[1])} with {conf_level_text} confidence. 
+      This score band is represented on the graphic above by the red error bars.
+       <p>
+       If the {test_name} has an SED of {sed}, then it can reliably
         sort students into {bins} bins (assign them one of {bins} ranks) with {conf_level_text} confidence . <br><br>
-        These bins will have a width of about {int(width)} scaled {test_name} score points <p>
+        These bins will have a width of about {int(width)} scaled {test_name} score points.
+         They are represented on the graphic above by the blue vertical dashed lines.</p></html>"""
         
-        If a student receives a score of {reported_score} when taking the {test_name}, their "true" score will be between {int(reported_score +interval[0])} and {int(reported_score +interval[1])} with {conf_level_text} confidence
-        </p></html>"""
+
 
 source_html = f"""<hr>The following  {test_name} statistics are used in this app:  <p>
     <ul>
@@ -146,9 +153,10 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
     <li>Standard Deviation: {test_stats[test_name]["sd"]} (Source: {sd_link})</li>
     </ul>
 
-    The SEm is used to populate the default value on the slider used to determine the width of the score buckets. <p>
+    The SEm is used to populate the default value on the slider and to determine the "true score" confidence interval.
+     The SEm is also used to compute the SED, which is then used to determine the width of the score buckets. <p>
     The mean and standard deviation of scores are used to determine the shape of the bell-shaped distribution on the plot above.
-    They aren't used to determine the score buckets (vertical dashed lines)
+    They aren't used to determine the score band or score buckets.
     <p>
     Only mathematical formulas and the above cited statistics were used to make this app. No student data from ETS, LSAC, The College Board nor anywhere else was used.
     <hr>
@@ -157,8 +165,8 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
 
 
 
-html(main_info, height=140)
-html(source_html, height=310)
+html(main_info, height=180)
+html(source_html, height=325)
 
 
 #aamc : https://www.aamc.org/media/35641/download
