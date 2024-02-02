@@ -21,14 +21,12 @@ def get_bins(width,n_scores):
 
 
 
-def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin):
+def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin, use_se):
     fig, ax = plt.subplots(1, 1)
     x = np.arange(score_range[0],
                   score_range[1], 1)
 
     a =-0.4 if test_name in ["GMAT", "GRE"] else 0
-
-
 
 
     ax.plot(x, skewnorm.pdf(x, a,loc=mean_score, scale=test_stats[test_name]["sd"]),
@@ -40,7 +38,7 @@ def get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text,
     if bins > 0:
         plt.vlines(rbin, ymin=0.000, ymax=skewnorm.pdf(rbin, a,loc=mean_score, scale=test_stats[test_name]["sd"]),
                    linestyle="--")
-    plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\nSEm: {se}, n={sample_size}")
+    plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\n{use_se}: {se}, n={sample_size}")
     plt.xlabel(f"{test_name} Score")
     fig = plt.gcf()
 
@@ -101,7 +99,18 @@ with st.sidebar:
         'Test',
         ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT', 'ACT'))
 
-    se = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=test_stats[test_name]["sem"], step=0.01)
+    sem = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=test_stats[test_name]["sem"], step=0.01)
+
+    use_se = st.radio(
+        "Compute Score Buckets Using",
+        ["SEm", "SED"],
+        captions=["Standard Error of Measurement", "Standard Error of Differences"])
+
+    if use_se == "SEm":
+        se = sem
+    else:
+        se = round(np.sqrt(2*(sem**2)),2)
+
     score_range  = test_stats[test_name]["range"]
     n_scores = score_range[1] - score_range[0]
     mean_score = test_stats[test_name]["mean"]
@@ -117,13 +126,13 @@ conf_level_text = f"{int(conf_level * 100)}%"
 
 bins, rbin = get_bins(width, n_scores)
 
-fig =get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin)
+fig =get_figure(mean_score, test_stats,test_name, reported_score,conf_level_text, sample_size, rbin, use_se)
 st.pyplot(fig)
 
 sem_link, mean_link, sd_link = get_source_links(sources, test_stats, test_name)
 year = datetime.date.today().year
 
-main_info =f"""<html><p>If the {test_name} has a standard error of measurement (SEm) of {se}, then it can reliably
+main_info =f"""<html><p>If the {test_name} has a standard error of measurement ({use_se}) of {se}, then it can reliably
         sort students into {bins} bins (assign them one of {bins} ranks) with {conf_level_text} confidence . <br><br>
         These bins will have a width of about {int(width)} scaled {test_name} score points <p>
         
