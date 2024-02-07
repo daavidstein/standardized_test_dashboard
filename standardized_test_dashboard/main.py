@@ -19,8 +19,6 @@ def get_bins(width,n_scores):
         bins = 0
     return bins, rbin
 
-
-
 def get_figure(sem, sed,mean_score, test_stats,test_name, reported_score,score_band,conf_level_text, sample_size, bins, rbin ):
     fig, ax = plt.subplots(1, 1)
     x = np.arange(score_range[0],
@@ -45,7 +43,7 @@ def get_figure(sem, sed,mean_score, test_stats,test_name, reported_score,score_b
     return fig
 
 def get_link(anchor_text, url):
-    return f"<a href={url}>{anchor_text}</a>"
+    return f"<a href={url} target={anchor_text}>{anchor_text}</a>"
 
 def get_source_links(sources, test_stats, test_name):
 
@@ -155,18 +153,20 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
 
     The SEm is used to populate the default value on the slider and to determine the "true score" confidence interval.
      The SEm is also used to compute the SED, which is then used to determine the width of the score buckets. <p>
-    The mean and standard deviation of scores are used to determine the shape of the bell-shaped distribution on the plot above.
+    The mean and standard deviation of scores are used to determine the shape of the normal distribution on the plot above.
     They aren't used to determine the score band or score buckets.
+    The (skew) normal distribution is used for graphical illustration purposes only, and doesn't necessarily reflect the shape of the actual score distribution.
+    For instance, compare the app's plot for MCAT with the graph on page 15 of the AAMC reference. This graphical liberty does not affect the confidence intervals
+    or score buckets.
+    
     <p>
     Only mathematical formulas and the above cited statistics were used to make this app. No student data from ETS, LSAC, The College Board nor anywhere else was used.
     <hr>
-    Copyright {year}  {get_link(anchor_text="Daavid Stein",url="http://www.linkedin.com/in/daavidstein")} All rights reserved."""
+    Copyright {year}  {get_link(anchor_text="Daavid Stein",url="http://www.linkedin.com/in/daavidstein")}. All rights reserved."""
 
 
 
 
 html(main_info, height=180)
-html(source_html, height=325)
+html(source_html, height=380)
 
-
-#aamc : https://www.aamc.org/media/35641/download
