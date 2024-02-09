@@ -55,6 +55,9 @@ def get_source_links(sources, test_stats, test_name):
 
     return sem_link, mean_link, sd_link
 
+def update_test_name(test_name):
+  st.session_state.test_name = test_name
+
 
 sources = {"LSAC": "https://web.archive.org/web/20230529145804/https://www.lsac.org/lsat/taking-lsat/lsat-scoring/lsat-score-bands",
            "Best Accredited Colleges": "https://bestaccreditedcolleges.org/articles/careers-and-education/what-is-the-standard-deviation-of-lsat-scores.html",
@@ -91,11 +94,16 @@ test_stats = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152,
 
               }
 
+st.set_page_config(page_title=f"Standardized Test Reliability")
+if "test_name" not in st.session_state:
+        st.session_state["test_name"] = "LSAT"
+
 with st.sidebar:
-    #test_name = st.text_input(label="Test Name", value="LSAT")
+
+    st.header(f'{st.session_state["test_name"]} reliability')
     test_name = st.selectbox(
         'Test',
-        ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT', 'ACT'))
+        ('LSAT', 'GMAT', 'GRE', 'MCAT', 'SAT', 'ACT'),key="test_name")
 
     sem = st.slider('standard error of measurement', min_value=0.5, max_value=5.0, value=test_stats[test_name]["sem"], step=0.01)
     sed = round(np.sqrt(2 * (sem ** 2)), 2)
@@ -118,6 +126,8 @@ with st.sidebar:
     sample_size = st.slider("sample size", min_value=10,max_value=100_000,value=100, step=10)
     reported_score = st.slider(f"Reported {test_name} Score", min_value=score_range[0],max_value=score_range[1],value=mean_score, step=1)
 
+#st.header(f"{st.session_state.test_name} Score Bands &   {st.session_state.test_name} Score")
+#html(f"<h1 align='center'>{st.session_state.test_name} Score Bands & {st.session_state.test_name} Score </h1>")
 score_band = conf_interval(se=sem,conf_level=conf_level,sample_size=sample_size)
 difference_interval = conf_interval(se=sed,conf_level=conf_level,sample_size=sample_size)
 width = difference_interval[1] - difference_interval[0]
@@ -132,10 +142,13 @@ st.pyplot(fig)
 sem_link, mean_link, sd_link = get_source_links(sources, test_stats, test_name)
 year = datetime.date.today().year
 
-main_info =f"""<html><p>
+
+score_band_para = f"""<html><p>
       If the {test_name} has an SEm of {sem}, then a student who receives a score of {reported_score} when taking the {test_name}
       will have a "true" score between {int(reported_score +score_band[0])} and {int(reported_score +score_band[1])} with {conf_level_text} confidence. 
-      This score band is represented on the graphic above by the red error bars.
+      This score band is represented on the graphic above by the red error bars."""
+
+score_buckets_para = f"""
        <p>
        If the {test_name} has an SED of {sed}, then it can reliably
         sort students into {bins} bins (assign them one of {bins} ranks) with {conf_level_text} confidence . <br><br>
@@ -144,13 +157,15 @@ main_info =f"""<html><p>
         
 
 
-source_html = f"""<hr>The following  {test_name} statistics are used in this app:  <p>
+source_html = f"""The following  {test_name} statistics are used in this app:  <p>
     <ul>
     <li>SEm: {test_stats[test_name]["sem"]} (Source: {sem_link} ) </li>
     <li>Mean {test_stats[test_name]["mean"]} (Source: {mean_link})</li>
     <li>Standard Deviation: {test_stats[test_name]["sd"]} (Source: {sd_link})</li>
     </ul>
+"""
 
+about_html= f"""
     The SEm is used to populate the default value on the slider and to determine the "true score" confidence interval.
      The SEm is also used to compute the SED, which is then used to determine the width of the score buckets. <p>
     The mean and standard deviation of scores are used to determine the shape of the normal distribution on the plot above.
@@ -166,7 +181,13 @@ source_html = f"""<hr>The following  {test_name} statistics are used in this app
 
 
 
+st.subheader(f"{st.session_state.test_name} Score Band")
+html(score_band_para, height=70)
+st.subheader(f"{st.session_state.test_name} Score Buckets",)
+html(score_buckets_para, height=50)
+st.subheader("Sources")
+html(source_html, height=110)
+st.subheader(f"About this app")
+html(about_html, height =300)
 
-html(main_info, height=180)
-html(source_html, height=380)
 
