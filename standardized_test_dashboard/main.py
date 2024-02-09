@@ -36,7 +36,7 @@ def get_figure(sem, sed,mean_score, test_stats,test_name, reported_score,score_b
     if bins > 0:
         plt.vlines(rbin, ymin=0.000, ymax=skewnorm.pdf(rbin, a,loc=mean_score, scale=test_stats[test_name]["sd"]),
                    linestyle="--")
-    plt.title(f"{test_name} Score Distribution and {conf_level_text} score buckets\nSEM: {sem}, SED: {sed}, n={sample_size}")
+    plt.title(f"{test_name} {conf_level_text} Score Buckets\nSEM: {sem}, SED: {sed}, n={sample_size}")
     plt.xlabel(f"{test_name} Score")
     fig = plt.gcf()
 
@@ -137,7 +137,6 @@ conf_level_text = f"{int(conf_level * 100)}%"
 bins, rbin = get_bins(width, n_scores)
 
 fig =get_figure(sem, sed,mean_score, test_stats,test_name, reported_score,score_band,conf_level_text, sample_size, bins, rbin )
-st.pyplot(fig)
 
 sem_link, mean_link, sd_link = get_source_links(sources, test_stats, test_name)
 year = datetime.date.today().year
@@ -179,8 +178,8 @@ about_html= f"""
     <hr>
     Copyright {year}  {get_link(anchor_text="Daavid Stein",url="http://www.linkedin.com/in/daavidstein")}. All rights reserved."""
 
-
-
+st.title(f"Visualizing {st.session_state.test_name} Measurement Error" )
+st.pyplot(fig)
 st.subheader(f"{st.session_state.test_name} Score Band")
 html(score_band_para, height=70)
 st.subheader(f"{st.session_state.test_name} Score Buckets",)
