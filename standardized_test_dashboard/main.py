@@ -144,7 +144,7 @@ year = datetime.date.today().year
 
 score_band_para = f"""<html><p>
       If the {test_name} has an SEm of {sem}, then a student who receives a score of {reported_score} when taking the {test_name}
-      will have a "true" score between {int(reported_score +score_band[0])} and {int(reported_score +score_band[1])} with {conf_level_text} confidence. 
+      will have a "true" score between {round(reported_score +score_band[0])} and {round(reported_score +score_band[1])} with {conf_level_text} confidence. 
       This score band is represented on the graphic above by the red error bars."""
 
 score_buckets_para = f"""
