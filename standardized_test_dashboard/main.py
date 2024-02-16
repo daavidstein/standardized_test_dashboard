@@ -55,8 +55,8 @@ def get_source_links(sources, test_stats, test_name):
 
     return sem_link, mean_link, sd_link
 
-def update_test_name(test_name):
-  st.session_state.test_name = test_name
+# def update_test_name(test_name):
+#   st.session_state.test_name = test_name
 
 
 sources = {"LSAC": "https://web.archive.org/web/20230529145804/https://www.lsac.org/lsat/taking-lsat/lsat-scoring/lsat-score-bands",
@@ -96,7 +96,7 @@ test_stats = {"LSAT": {"sem": 2.6, "range":(120, 180), "sd": 9.95, "mean": 152,
 
 st.set_page_config(page_title=f"Standardized Test Reliability")
 if "test_name" not in st.session_state:
-        st.session_state["test_name"] = "LSAT"
+    st.session_state["test_name"] = "LSAT"
 
 with st.sidebar:
 
@@ -175,8 +175,7 @@ about_html= f"""
     
     <p>
     Only mathematical formulas and the above cited statistics were used to make this app. No student data from ETS, LSAC, The College Board nor anywhere else was used.
-    <hr>
-    Copyright {year}  {get_link(anchor_text="Daavid Stein",url="http://www.linkedin.com/in/daavidstein")}. All rights reserved."""
+   """
 
 st.title(f"Visualizing {st.session_state.test_name} Measurement Error" )
 st.pyplot(fig)
@@ -184,9 +183,10 @@ st.subheader(f"{st.session_state.test_name} Score Band")
 html(score_band_para, height=70)
 st.subheader(f"{st.session_state.test_name} Score Buckets",)
 html(score_buckets_para, height=50)
-st.subheader("Sources")
-html(source_html, height=110)
-st.subheader(f"About this app")
-html(about_html, height =300)
+with st.expander("Sources"):
+    html(source_html, height=110)
+with st.expander("About this app"):
+    html(about_html, height =300)
+html(f'<hr>Copyright {year}  {get_link(anchor_text="Daavid Stein",url="http://www.linkedin.com/in/daavidstein")}. All rights reserved.')
 
 
